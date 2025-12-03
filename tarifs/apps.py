@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class TarifsConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "tarifs"
+    verbose_name = "Gestion des tarifs"

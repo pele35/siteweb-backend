@@ -1,0 +1,74 @@
+services:
+  ekila-db:
+    image: postgres:16.6-bullseye
+    container_name: ekila-database
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - "mnlvm-data:/var/lib/postgresql/data/"
+    env_file:
+      - .env
+    expose:
+      - 5432
+    networks:
+      - default
+      - vps_network
+
+  mnlvm-service:
+    build:
+      context: .
+      dockerfile: ./containers/prod/Dockerfile
+    image: mnlv-website
+    container_name: mnlvm-server
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_HOST=ekila-db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+    volumes:
+      - "staticfiles-data:/var/www/static"
+      - "media-data:/var/www/media"
+    depends_on:
+      - ekila-db
+    env_file:
+      - .env
+    expose:
+      - 8030
+    networks:
+      - default
+      - vps_network
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./containers/nginx/Dockerfile
+    image: mnlvm-proxy
+    container_name: proxy-container
+    restart: unless-stopped
+    ports:
+      - "8030:80"
+      - "443:443"
+    volumes:
+      - "staticfiles-data:/var/www/static:ro"
+      - "media-data:/var/www/media:ro"
+      - "/etc/letsencrypt/live/app.mnvlges.mnlvm.com/fullchain.pem:/etc/letsencrypt/live/app.mnvlges.mnlvm.com/fullchain.pem"
+      - "/etc/letsencrypt/live/app.mnvlges.mnlvm.com/privatekey.pem:/etc/letsencrypt/live/app.mnvlges.mnlvm.com/privatekey.pem"
+    depends_on:
+      - mnlvm-service
+    env_file:
+      - .env
+    networks:
+      - default
+      - vps_network
+
+networks:
+  default:
+    external: false
+  vps_network:
+    external: true
+
+volumes:
+  mnlvm-data:
+  staticfiles-data:
+  media-data:

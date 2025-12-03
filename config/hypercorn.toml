@@ -1,0 +1,11 @@
+bind = ["0.0.0.0:8030"]  # Change to your desired port
+workers = 4              # Adjust based on CPU cores
+threads = 2              # Enable threading (if needed)
+keep_alive_timeout = 5
+max_app_queue_size = 100
+backlog = 2048
+loglevel = "error"
+accesslog = "-"
+errorlog = "-"
+use_reloader = false
+graceful_timeout = 30

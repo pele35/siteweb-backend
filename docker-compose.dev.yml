@@ -1,0 +1,42 @@
+
+services:
+  website-db:
+    image: postgres:16.6-bullseye
+    container_name: website-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - "ekila-data:/var/lib/postgresql/data/"
+    env_file:
+      - .env
+
+  webiste-service:
+    build:
+      context: .
+      dockerfile: ./containers/dev/Dockerfile
+    container_name: website-server
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_HOST=website-db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+    volumes:
+      - "staticfiles-data:/var/www/static"
+      - "media-data:/var/www/media"
+    depends_on:
+      -  website-db
+    ports:
+      - "8030:8030"
+    env_file:
+      - .env
+    entrypoint: ["/bin/bash", "./containers/dev/entrypoint.sh"]
+
+volumes:
+  ekila-data:
+  staticfiles-data:
+  media-data:
