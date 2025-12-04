@@ -61,7 +61,7 @@ class ActualityDetailView(DetailView):
     template_name = "actuSelected.html"
     context_object_name = "actu"
 
-    def get_object(self):
+    def get_object(self): 
         slug = self.kwargs.get("slug_uri")
         return get_object_or_404(Actuality.objects.select_related(), slug_uri=slug)
 

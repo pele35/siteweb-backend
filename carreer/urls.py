@@ -1,7 +1,8 @@
 from django.urls import path 
-from carreer.views import JobOfferViewSet
+from carreer  import views 
 
 app_name="carreer"
 urlpatterns=[
-    #path("",JobOfferViewSet.as_view(),name='JobOfferList'),
+    path('', views.JobOfferListView.as_view(), name='job_list'),
+    path('<slug:slug>/', views.JodOfferDetailView.as_view(), name='job_detail'),
 ]

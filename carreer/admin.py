@@ -8,10 +8,11 @@ from carreer.forms import AdminJobOfferForm
 class OffreAdmin(admin.ModelAdmin):
     
     list_display = ("title", "description", "posted_date", "is_urgent", "experience",)
-    list_filter = ("posted_date", "is_urgent", "experience")
+    list_filter = ("posted_date", "is_urgent", "experience","department","type")
     search_fields = (
         "title",
         "description",
+        "department",
     )
     list_per_page = 30
     form = AdminJobOfferForm
