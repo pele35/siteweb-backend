@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "game",
     "offers",
     "carreer",
+    "django_filters",
 ]
 
 CRISPY_TEMPLATE_PACK = "bootstrap4"

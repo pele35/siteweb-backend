@@ -1,14 +1,20 @@
 from django.contrib import admin
+
 from .models import JobOffer
 from carreer.forms import AdminJobOfferForm
 
 
-
 @admin.register(JobOffer)
 class OffreAdmin(admin.ModelAdmin):
-    
-    list_display = ("title", "description", "posted_date", "is_urgent", "experience",)
-    list_filter = ("posted_date", "is_urgent", "experience","department","type")
+    list_display = (
+        "title",
+        "description",
+        "posted_date",
+        "is_urgent",
+        "experience",
+        "username",
+    )
+    list_filter = ("posted_date", "is_urgent", "experience", "department", "type")
     search_fields = (
         "title",
         "description",
