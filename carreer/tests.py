@@ -126,13 +126,12 @@ def test_create_offer_future_date_invalid(user):
         "description": "...",
         "department": "Tech",
         "type": "CDI",
-        "posted_date": future_date,  # Date interdite
+        "posted_date": future_date,  
         "username": user.username,
     }
 
     serializer = JobOffersSerializers(data=data)
 
-    # On vérifie que c'est invalide
     assert serializer.is_valid() is False
     assert "posted_date" in serializer.errors
     assert "Date de publication ne peut pas etre dans le futur." in str(
