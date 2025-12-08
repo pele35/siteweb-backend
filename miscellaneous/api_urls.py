@@ -7,6 +7,7 @@ from miscellaneous.api import ContactAPIView
 from miscellaneous.api import CookieViewSet
 from miscellaneous.api import GeneralConditionViewSet
 from miscellaneous.api import LegalNoticeViewSet
+from miscellaneous.api import NewsletterConfirmationView
 from miscellaneous.api import NewsletterSubscriptionView
 from miscellaneous.api import PersonalDataViewSet
 from miscellaneous.api import PublicityViewSet
@@ -29,4 +30,9 @@ urlpatterns = [
     path("", include(router.urls)),
     path("contact/", ContactAPIView.as_view(), name="contact-api"),
     path("subscribe/", NewsletterSubscriptionView.as_view(), name="subscribe"),
+    path(
+        "newsletter/confirm/",
+        NewsletterConfirmationView.as_view(),
+        name="newsletter-confirm",
+    ),
 ]

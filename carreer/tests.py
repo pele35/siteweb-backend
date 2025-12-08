@@ -84,7 +84,6 @@ def test_filter_by_department(api_client, user):
     response = api_client.get(url, {"department": "Editioral"})
 
     jobs_list = response.context["paginated_data"]
-    print(f"le nombre esst neefniefnf{jobs_list}")
     assert len(jobs_list) == 1
 
     assert jobs_list[0].title == "RH"
@@ -126,7 +125,7 @@ def test_create_offer_future_date_invalid(user):
         "description": "...",
         "department": "Tech",
         "type": "CDI",
-        "posted_date": future_date,  
+        "posted_date": future_date, 
         "username": user.username,
     }
 

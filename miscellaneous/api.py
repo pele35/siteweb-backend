@@ -35,6 +35,7 @@ from miscellaneous.serializers import ServiceSerializer
 from miscellaneous.serializers import SliderSerializer
 from miscellaneous.serializers import SubscriptionSerializer
 from miscellaneous.serializers import VideoSerializer
+from miscellaneous.utils import decode_subscriber_data
 from miscellaneous.utils import send_subscriber_email
 
 logger = logging.getLogger(__name__)
@@ -227,4 +228,51 @@ class NewsletterSubscriptionView(APIView):
             return Response(
                 {"detail": "Erreur survenu lors de l'envoi du message"},
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class NewsletterConfirmationView(APIView):
+    # @swagger_auto_schema(
+    #     operation_summary="Confirm newsletter subscription",
+    #     request_body=SubscriptionSerializer,
+    #     responses={
+    #         200: openapi.Response("Soucription avec succès"),
+    #         400: openapi.Response("Erreur survenu lors de l'envoi du message"),
+    #     },
+    # )
+    def get(self, request, *args, **kwargs):
+        encoded_data = request.GET.get("data")
+        if not encoded_data:
+            return Response(
+                {"detail": "Données manquantes pour la confirmation"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        email, code = decode_subscriber_data(encoded_data)
+        if not email or not code:
+            return Response(
+                {"detail": "lien de confirmation invalide ou expiré"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            subscriber = Subscriber.objects.get(email=email)
+            if subscriber.confirmed:
+                return Response(
+                    {"detail": "Abonnement déjà confirmé."},
+                    status=status.HTTP_200_OK,
+                )
+            if subscriber.confirmation_code != code:
+                return Response(
+                    {"detail": "Code de confirmation invalide."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            subscriber.confirmed = True
+            subscriber.save()
+            return Response(
+                {"detail": "Abonnement confirmé avec succès."},
+                status=status.HTTP_200_OK,
+            )
+        except Subscriber.DoesNotExist:
+            return Response(
+                {"detail": "Abonné non trouvé."},
+                status=status.HTTP_404_NOT_FOUND,
             )

@@ -1,28 +1,46 @@
-import base64
-import json
 import logging
 
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.signing import BadSignature
+from django.core.signing import SignatureExpired
+from django.core.signing import TimestampSigner
 
 from miscellaneous.models import Subscriber
 
 logger = logging.getLogger(__name__)
 
 
-def encode_subscriber_data(email: str, confirmation_code: str) -> str:
-    data = {"email": email, "code": confirmation_code}
-    json_data = json.dumps(data)
-    encoded_data = base64.urlsafe_b64encode(json_data.encode()).decode()
-    return encoded_data
+# def encode_subscriber_data(email: str, confirmation_code: str) -> str:
+#     data = {"email": email, "code": confirmation_code}
+#     json_data = json.dumps(data)
+#     encoded_data = base64.urlsafe_b64encode(json_data.encode()).decode()
+#     return encoded_data
 
 
-def decode_subscriber_data(encoded_data: str) -> dict:
+# def decode_subscriber_data(encoded_data: str) -> dict:
+#     try:
+#         decoded_data = base64.urlsafe_b64decode(encoded_data.encode()).decode()
+#         return json.loads(decoded_data)
+#     except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+#         return None
+MAX_DURATION_CONFIRMATION = 1 * 24 * 60 * 60
+
+
+def encode_subscriber_data(email, confirmation_code):
+    signer = TimestampSigner()
+    data = {f"{email}|{confirmation_code}"}
+    return signer.sign(data)
+
+
+def decode_subscriber_data(signed_data: str):
+    signer = TimestampSigner()
     try:
-        decoded_data = base64.urlsafe_b64decode(encoded_data.encode()).decode()
-        return json.loads(decoded_data)
-    except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
-        return None
+        unsigned_data = signer.unsign(signed_data, max_age=MAX_DURATION_CONFIRMATION)
+        email, confirmation_code = unsigned_data.split("|")
+        return email, confirmation_code
+    except (BadSignature, SignatureExpired):
+        return None, None
 
 
 def send_subscriber_email(user: Subscriber) -> None:
@@ -65,17 +83,7 @@ def send_subscriber_email(user: Subscriber) -> None:
                     padding: 40px 30px;
                     color: #333333;
                 }}
-                .confirmation-code {{
-                    background: #f8f9fa;
-                    border: 2px dashed #dee2e6;
-                    border-radius: 8px;
-                    padding: 15px;
-                    margin: 20px 0;
-                    text-align: center;
-                    font-size: 18px;
-                    font-weight: bold;
-                    color: #495057;
-                }}
+            
                 .btn-confirm {{
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     border: none;
@@ -112,11 +120,6 @@ def send_subscriber_email(user: Subscriber) -> None:
                 <div class="email-body">
                     <h2>Bonjour,</h2>
                     <p>Merci de vous être inscrit à notre newsletter. Pour finaliser votre inscription, veuillez confirmer votre adresse email.</p>
-                    
-                    <div class="confirmation-code">
-                        Code de confirmation :<br>
-                        <span style="color: #667eea; font-size: 24px;">{user.confirmation_code}</span>
-                    </div>
                     
                     <p style="text-align: center;">
                         <a href="{confirmation_url}" class="btn-confirm">
